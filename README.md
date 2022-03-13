@@ -1,4 +1,5 @@
-simple-scala-rest-example
+Game server Example
 =========================
 
-Example of REST Service with Scala using Spray, Slick and Akka.
+Notes about implementation
+ - socket API done as soon as possible, only for working application, not as good example 

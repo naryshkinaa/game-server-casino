@@ -2,18 +2,20 @@ package com.example.service
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.example.domain.PlayerActionType.PlayerActionType
+import com.example.domain.game.GameEvents
+import com.example.domain.game.GameLobbyEvents.{GameEnd, GameStart}
 
-class GameLobby(
+class GameLobbyActor(
                ) extends Actor with ActorLogging {
   private val startedGames = collection.mutable.Map[String, ActorRef]()
   private val waitingGames = collection.mutable.Map[String, ActorRef]()
-  private val playerGames = collection.mutable.Map[String, collection.mutable.Set[String]]()
+  private val gamesPerPlayer = collection.mutable.Map[String, collection.mutable.Set[String]]()
 
-  import GameLobby._
+  import com.example.domain.game.GameLobbyEvents._
 
   def receive: Receive = {
     case NewGame(playerId, player) =>
-      val games = playerGames.getOrElseUpdate(playerId, collection.mutable.Set[String]())
+      val games = gamesPerPlayer.getOrElseUpdate(playerId, collection.mutable.Set[String]())
       val gameActor: ActorRef = waitingGames
         .find(g => !games.contains(g._1))
         .map(_._2)
@@ -24,7 +26,7 @@ class GameLobby(
           games.add(gameId)
           newGame
         }
-      gameActor ! GameEvents.Connected(playerId, player)
+      gameActor ! GameEvents.PlayerJoin(playerId, player)
     case GameEnd(gameId: String, game: ActorRef) =>
       log.info(s"Game end ${gameId}")
       startedGames.remove(gameId)
@@ -35,23 +37,7 @@ class GameLobby(
   }
 }
 
-object GameLobby {
 
-  case class NewGame(playerId: String, player: ActorRef)
 
-  case class GameEnd(gameId: String, game: ActorRef)
 
-  case class GameStart(gameId: String, game: ActorRef)
 
-}
-
-object GameEvents {
-
-  case class Connected(playerId: String, player: ActorRef)
-
-  case class Exit(playerId: String, player: ActorRef)
-
-  trait UserAction
-  case class FoldPlayAction(action: PlayerActionType, playerId: String) extends UserAction
-
-}

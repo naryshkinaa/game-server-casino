@@ -2,10 +2,13 @@ package com.example.service
 
 import akka.actor.{ActorRef, PoisonPill}
 import com.example.domain.PlayerActionType.{FOLD, PLAY, PlayerActionType}
+import com.example.domain.api.incoming.games.single.PlayFoldAction
+import com.example.domain.game.{AutoFoldAction, UserUntypedAction}
+import com.example.domain.game.GameEvents.PlayerExit
 import com.example.domain.{Deck, GameResult, Hand, PlayerActionType}
-import com.example.service.GameEvents.{Exit, FoldPlayAction}
 import com.example.service.PlayerActor.{GameStarted, Lose, Win}
 import com.example.service.compare.{HandCompare, OneCardCompare}
+import com.example.util.JsonUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
@@ -18,14 +21,14 @@ class SingleCardGameActor(
   val timeLimitSec: Int = 15
   val compare: HandCompare = new OneCardCompare()
 
-  def startGameState(players: Map[String, ActorRef]): Receive = {
+  def startGameState(players: Map[String, ActorRef], isRestarted: Boolean): Receive = {
     val deck = Deck()
     val playerHands: Map[String, Hand] = players
       .keys
       .map(
         playerId => {
           val hand = Hand(deck.nextCard() :: Nil)
-          players(playerId) ! GameStarted(gameId, hand)
+          players(playerId) ! GameStarted(gameId, hand, isRestarted)
           playerId -> hand
         }
       )
@@ -37,7 +40,7 @@ class SingleCardGameActor(
         playerId => context.system.scheduler.scheduleOnce(
           timeLimitSec seconds,
           self,
-          FoldPlayAction(PlayerActionType.FOLD, playerId)
+          AutoFoldAction(playerId)
         )
       )
     gameState(players, playerHands, Map())
@@ -48,14 +51,26 @@ class SingleCardGameActor(
                  playerHands: Map[String, Hand],
                  playersAction: Map[String, PlayerActionType]
                ): Receive = {
-    case GameEvents.FoldPlayAction(actionType, playerId) =>
-      if (!playersAction.contains(playerId)) {
-        val updatedActions = playersAction + (playerId -> actionType)
-        if (players.size == updatedActions.size) resolveGameResults(players, playerHands, updatedActions)
-        else context.become(gameState(players, playerHands, updatedActions))
-      }
-    case Exit(playerId: String, player: ActorRef) =>
-      self ! FoldPlayAction(PlayerActionType.PLAY, playerId)
+    case AutoFoldAction(playerId) =>
+      processAction(playerId, PlayerActionType.FOLD, players, playerHands, playersAction)
+    case UserUntypedAction(playerId, serializedAction) =>
+      val parsed = JsonUtil.fromJson[PlayFoldAction](serializedAction)
+      processAction(playerId, parsed.action, players, playerHands, playersAction)
+    case PlayerExit(playerId: String, player: ActorRef) =>
+      self ! AutoFoldAction(playerId)
+  }
+
+  private def processAction(
+                             playerId: String,
+                             actionType: PlayerActionType,
+                             players: Map[String, ActorRef],
+                             playerHands: Map[String, Hand],
+                             playersAction: Map[String, PlayerActionType]): Unit = {
+    if (!playersAction.contains(playerId)) {
+      val updatedActions = playersAction + (playerId -> actionType)
+      if (players.size == updatedActions.size) resolveGameResults(players, playerHands, updatedActions)
+      else context.become(gameState(players, playerHands, updatedActions))
+    }
   }
 
   def resolveGameResults(
@@ -89,7 +104,7 @@ class SingleCardGameActor(
             players(player2) ! Win(gameId, 10, s"Both players PLAY, WIN 10 token. \n Showdown: you ${playerHands(player2)}, op ${playerHands(player1)}")
             self ! PoisonPill
           case GameResult.Equal =>
-            context.become(startGameState(players))
+            context.become(startGameState(players, true))
         }
     }
 

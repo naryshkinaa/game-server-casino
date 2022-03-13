@@ -1,10 +1,11 @@
 package com.example.service
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
+import com.example.domain.game.GameLobbyEvents
 
 trait AbstractTableGameActor extends Actor with ActorLogging {
 
-  import GameEvents._
+  import com.example.domain.game.GameEvents._
 
   def gameLobby: ActorRef
 
@@ -14,24 +15,25 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
 
   def timeLimitSec: Int
 
-  def startGameState(players: Map[String, ActorRef]): Receive
+  def startGameState(players: Map[String, ActorRef], isRestarted: Boolean): Receive
 
   def waitingState(players: Map[String, ActorRef]): Receive = {
-    case Connected(playerId, player) =>
+    case PlayerJoin(playerId, player) =>
       if (!players.contains(playerId)) {
+        player ! PlayerActor.ConnectedToGame(gameId, self)
         if (players.size == tableSize - 1) {
-          context.become(startGameState(players + (playerId -> player)))
-          gameLobby ! GameLobby.GameStart(gameId, self)
+          context.become(startGameState(players + (playerId -> player), false))
+          gameLobby ! GameLobbyEvents.GameStart(gameId, self)
 
         } else {
           context.become(waitingState(players + (playerId -> player)))
         }
       }
       else {
-        gameLobby ! GameLobby.NewGame(playerId, player)
+        gameLobby ! GameLobbyEvents.NewGame(playerId, player)
       }
-    case Exit(playerId: String, player: ActorRef) =>
-      context.become(startGameState(players - playerId))
+    case PlayerExit(playerId: String, player: ActorRef) =>
+      context.become(waitingState(players - playerId))
   }
 
   def receive = {

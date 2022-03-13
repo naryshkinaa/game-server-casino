@@ -5,8 +5,8 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import com.example.rest.{ConnectRoute, HealthRoute, StartGameRoute}
-import com.example.service.{GameLobby, SingleCardGameActor, MainLobbyActor}
+import com.example.service.{GameLobbyActor, MainLobbyActor, SingleCardGameActor}
+import com.example.socket.SocketServer
 
 object Boot extends App {
 
@@ -16,25 +16,27 @@ object Boot extends App {
 
   implicit val log = Logging(system, "main")
 
-  val port = 8080
 
-  val singleGameActor = system.actorOf(Props(classOf[GameLobby]), "singleCardGameLobby")
-  val doubleGameActor = system.actorOf(Props(classOf[GameLobby]), "doubleCardGameLobby")
+
+  val singleGameActor = system.actorOf(Props(classOf[GameLobbyActor]), "singleCardGameLobby")
+  val doubleGameActor = system.actorOf(Props(classOf[GameLobbyActor]), "doubleCardGameLobby")
   val mainLobby = system.actorOf(Props(classOf[MainLobbyActor], singleGameActor, doubleGameActor), "mainLobby")
-  val mainLobby2 = system.actorOf(Props(classOf[SingleCardGameActor], "", doubleGameActor), "mainLobby2")
+  val socketServer = system.actorOf(Props(classOf[SocketServer], mainLobby), "socketServer")
 
-  val bindingFuture =
-    Http()
-      .newServerAt("localhost", port)
-      .bind(allRoutes)
+//  val port = 8080
+//  def allRoutes = {
+//    concat(
+//      HealthRoute.healthRoute,
+//      ConnectRoute.route(mainLobby),
+//      StartGameRoute.route(mainLobby)
+//    )
+//  }
+//  val bindingFuture =
+//    Http()
+//      .newServerAt("localhost", port)
+//      .bind(allRoutes)
 
-  log.info(s"Server started at the port $port")
+  log.info(s"Server started")
 
-  def allRoutes = {
-    concat(
-      HealthRoute.healthRoute,
-      ConnectRoute.route(mainLobby),
-      StartGameRoute.route(mainLobby)
-    )
-  }
+
 }
