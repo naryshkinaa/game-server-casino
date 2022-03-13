@@ -1,9 +1,9 @@
-package com.example
+package com.example.bot
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
-import com.example.domain.api.outcoming.{GameStartedNotification, ResponseType, UserGameResultNotification, UserInfoNotification, WrappedResponse}
+import com.example.domain.api.outcoming._
 import com.example.util.JsonUtil
 
 import java.net.InetSocketAddress

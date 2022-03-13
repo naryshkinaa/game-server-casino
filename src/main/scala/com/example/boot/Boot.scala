@@ -7,6 +7,10 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.example.bot.AbstractBot
+import com.example.bot.strategy.{AgroSingleCardStrategy, BaseSingleCardStrategy}
+import com.example.config.Params
+import com.example.domain.GameType
 import com.example.rest.{ConnectRoute, GetEventsRoute, GetGameInfoRoute, StartGameRoute, UserActionRoute}
 import com.example.service.{GameLobbyActor, MainLobbyActor, SingleCardGameActor}
 import com.example.socket.SocketServer
@@ -26,11 +30,14 @@ object Boot extends App {
   val mainLobby = system.actorOf(Props(classOf[MainLobbyActor], singleGameActor, doubleGameActor), "mainLobby")
   val socketServer = system.actorOf(Props(classOf[SocketServer], mainLobby), "socketServer")
 
-  val port = 8080
+  if(Params.startBot){
+    val firstClient = system.actorOf(Props(classOf[AbstractBot], "Bot" , Params.botConcurrentGames, 1000000, true, Params.botStrategy, GameType.SINGLE_CARD_GAME), "Bot")
+    firstClient ! AbstractBot.Start
+  }
 
   val bindingFuture =
     Http()
-      .newServerAt("localhost", port)
+      .newServerAt("localhost", Params.restPort)
       .bind(
         concat(
           ConnectRoute.route(mainLobby),

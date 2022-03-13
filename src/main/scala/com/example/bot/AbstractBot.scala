@@ -1,14 +1,14 @@
-package com.example
+package com.example.bot
 
 import akka.actor.{Actor, ActorLogging}
 import akka.util.ByteString
-import com.example.AbstractBot.{Start, StartGame}
+import com.example.bot.strategy.CardStrategy
+import com.example.config.Params
 import com.example.domain.GameType.GameType
 import com.example.domain.Hand
-import com.example.domain.api.incoming.{AuthRequest, RequestType, StartGameRequest, UserActionRequest, WrappedRequest}
+import com.example.domain.api.incoming._
 import com.example.domain.api.outcoming.{ErrorNotification, GameStartedNotification, UserGameResultNotification, UserInfoNotification}
 import com.example.socket.SocketServer
-import com.example.strategy.CardStrategy
 import com.example.util.JsonUtil
 
 import java.net.InetSocketAddress
@@ -22,16 +22,16 @@ class AbstractBot(
                    gameType: GameType,
                  ) extends Actor with ActorLogging {
 
-  val client = context.actorOf(Client.props(new InetSocketAddress("localhost", SocketServer.port), null), "BotClient")
+  val client = context.actorOf(Client.props(new InetSocketAddress("localhost", Params.socketPort), null), "BotClient")
   Thread.sleep(1000)
 
   def receive: Receive = {
-    case Start =>
+    case AbstractBot.Start =>
       client ! prepareRequest(RequestType.Auth, AuthRequest(playerId, "password"))
     case UserInfoNotification(_, _) =>
       context.become(playStage(totalGames, Map()))
       for (_ <- 1 to concurrentGames) {
-        self ! StartGame
+        self ! AbstractBot.StartGame
 
       }
     case ErrorNotification(message) =>
@@ -40,7 +40,7 @@ class AbstractBot(
   }
 
   def playStage(totalGames: Int, games: Map[String, Hand]): Receive = {
-    case StartGame =>
+    case AbstractBot.StartGame =>
       if (totalGames > 0) {
         context.become(playStage(totalGames - 1, Map()))
         client ! prepareRequest(RequestType.StartGame, StartGameRequest(gameType))
@@ -58,7 +58,7 @@ class AbstractBot(
 
     case UserGameResultNotification(gameId,_ , message, balance) =>
       wrapLog(s"Game end: $message. Balance: $balance")
-      self ! StartGame
+      self ! AbstractBot.StartGame
   }
 
   private def wrapLog(message: String): Unit = {

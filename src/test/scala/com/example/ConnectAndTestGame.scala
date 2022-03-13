@@ -3,10 +3,11 @@ package com.example
 import akka.actor.Props
 import akka.http.scaladsl.testkit.{ScalatestRouteTest, WSProbe}
 import akka.stream.ActorMaterializer
+import com.example.bot.AbstractBot
 import com.example.domain.GameType
 import com.example.service.{GameLobbyActor, MainLobbyActor}
 import com.example.socket.SocketServer
-import com.example.strategy.{AgroSingleCardStrategy, BaseSingleCardStrategy}
+import com.example.bot.strategy.{AgroSingleCardStrategy, BaseSingleCardStrategy}
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 

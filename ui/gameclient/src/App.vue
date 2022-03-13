@@ -49,7 +49,7 @@ export default {
             self.$refs.childComponent.restoreGames(response.data.activeGames)
           }
           self.getEvents();
-        },1000);
+        },100);
       })
     },
     getEvents: function (){

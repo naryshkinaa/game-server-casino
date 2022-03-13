@@ -1,4 +1,4 @@
-package com.example.strategy
+package com.example.bot.strategy
 
 import com.example.domain.{CardRank, Hand, PlayerActionType}
 import com.example.domain.PlayerActionType.PlayerActionType

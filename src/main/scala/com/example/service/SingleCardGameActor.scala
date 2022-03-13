@@ -1,6 +1,7 @@
 package com.example.service
 
 import akka.actor.{ActorRef, PoisonPill}
+import com.example.config.Params
 import com.example.domain.PlayerActionType.{FOLD, PLAY, PlayerActionType}
 import com.example.domain.api.outcoming.GameInfoNotification
 import com.example.domain.game.GameEvents.PlayerExit
@@ -17,7 +18,7 @@ class SingleCardGameActor(
                            val gameLobby: ActorRef
                          ) extends AbstractTableGameActor {
   val tableSize: Int = 2
-  val timeLimitSec: Int = 20
+  val timeLimitSec: Int = Params.timeLimitSec
   val compare: HandCompare = new OneCardCompare()
 
   def startGameState(players: Map[String, ActorRef], isRestarted: Boolean): Receive = {

@@ -3,6 +3,7 @@ package com.example.socket
 import akka.actor.{Actor, ActorRef, Props}
 import akka.io.Tcp._
 import akka.io.{IO, Tcp}
+import com.example.config.Params
 
 import java.net.InetSocketAddress
 
@@ -10,7 +11,7 @@ class SocketServer(mainLobby: ActorRef) extends Actor {
 
   import context.system
 
-  IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", SocketServer.port))
+  IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", Params.socketPort))
 
   def receive = {
     case Bound(localAddress) =>
@@ -28,8 +29,4 @@ class SocketServer(mainLobby: ActorRef) extends Actor {
       connection ! Register(handler)
   }
 
-}
-
-object SocketServer {
-  val port = 8081
 }
