@@ -4,14 +4,13 @@ import akka.actor.Props
 import akka.http.scaladsl.testkit.{ScalatestRouteTest, WSProbe}
 import akka.stream.ActorMaterializer
 import com.example.bot.AbstractBot
-import com.example.domain.GameType
-import com.example.service.{GameLobbyActor, MainLobbyActor}
-import com.example.socket.SocketServer
 import com.example.bot.strategy.{AgroSingleCardStrategy, BaseSingleCardStrategy}
+import com.example.domain.GameType
+import com.example.service.lobby.{GameLobbyActor, MainLobbyActor}
+import com.example.socket.SocketServer
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.net.InetSocketAddress
 import scala.concurrent.duration.DurationInt
 
 class ConnectAndTestGame extends AnyFunSpec with Matchers with ScalatestRouteTest {
@@ -28,8 +27,8 @@ class ConnectAndTestGame extends AnyFunSpec with Matchers with ScalatestRouteTes
 
   // WS creates a WebSocket request for testing
   val gamesCount = 1000
-  val firstClient = system.actorOf(Props(classOf[AbstractBot], "Andrey" , 1, gamesCount, true, new BaseSingleCardStrategy(), GameType.SINGLE_CARD_GAME), "Andrey")
-  val secondClient = system.actorOf(Props(classOf[AbstractBot], "Tanya" , 1, gamesCount, false,new AgroSingleCardStrategy(), GameType.SINGLE_CARD_GAME), "Tanya")
+  val firstClient = system.actorOf(Props(classOf[AbstractBot], "Andrey", 1, gamesCount, true, new BaseSingleCardStrategy(), GameType.SINGLE_CARD_GAME), "Andrey")
+  val secondClient = system.actorOf(Props(classOf[AbstractBot], "Tanya", 1, gamesCount, false, new AgroSingleCardStrategy(), GameType.SINGLE_CARD_GAME), "Tanya")
 
   firstClient ! AbstractBot.Start
   secondClient ! AbstractBot.Start

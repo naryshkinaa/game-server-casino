@@ -1,8 +1,8 @@
-package com.example.service
+package com.example.service.player
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.example.domain.api.incoming.UserActionRequest
-import com.example.domain.api.outcoming.{GameInfoNotification, GameStartedNotification, GetEventsNotification, ResponseType, UserGameResultNotification}
+import com.example.domain.api.outcoming._
 import com.example.domain.game.{GameEvents, UserAction}
 import com.example.domain.{GameResult, Hand, UserPush}
 import com.example.socket.SocketHandler.PlayerInfo

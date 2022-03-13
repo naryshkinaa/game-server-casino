@@ -1,18 +1,16 @@
 package com.example.boot
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
+import akka.actor.{ActorSystem, Props}
 import akka.event.Logging
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.stream.{ActorMaterializer, OverflowStrategy}
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.ActorMaterializer
 import com.example.bot.AbstractBot
-import com.example.bot.strategy.{AgroSingleCardStrategy, BaseSingleCardStrategy}
 import com.example.config.Params
 import com.example.domain.GameType
-import com.example.rest.{ConnectRoute, GetEventsRoute, GetGameInfoRoute, StartGameRoute, UserActionRoute}
-import com.example.service.{GameLobbyActor, MainLobbyActor, SingleCardGameActor}
+import com.example.rest._
+import com.example.service.games.{DoubleCardGameActor, SingleCardGameActor}
+import com.example.service.lobby.{GameLobbyActor, MainLobbyActor}
 import com.example.socket.SocketServer
 
 object Boot extends App {
@@ -23,15 +21,13 @@ object Boot extends App {
 
   implicit val log = Logging(system, "main")
 
-
-
-  val singleGameActor = system.actorOf(Props(classOf[GameLobbyActor]), "singleCardGameLobby")
-  val doubleGameActor = system.actorOf(Props(classOf[GameLobbyActor]), "doubleCardGameLobby")
+  val singleGameActor = system.actorOf(Props(classOf[GameLobbyActor], classOf[SingleCardGameActor]), "singleCardGameLobby")
+  val doubleGameActor = system.actorOf(Props(classOf[GameLobbyActor], classOf[DoubleCardGameActor]), "doubleCardGameLobby")
   val mainLobby = system.actorOf(Props(classOf[MainLobbyActor], singleGameActor, doubleGameActor), "mainLobby")
   val socketServer = system.actorOf(Props(classOf[SocketServer], mainLobby), "socketServer")
 
-  if(Params.startBot){
-    val firstClient = system.actorOf(Props(classOf[AbstractBot], "Bot" , Params.botConcurrentGames, 1000000, true, Params.botStrategy, GameType.SINGLE_CARD_GAME), "Bot")
+  if (Params.startBot) {
+    val firstClient = system.actorOf(Props(classOf[AbstractBot], "Bot", Params.botConcurrentGames, 1000000, true, Params.botStrategy, GameType.SINGLE_CARD_GAME), "Bot")
     firstClient ! AbstractBot.Start
   }
 

@@ -9,7 +9,7 @@ import akka.util.Timeout
 import com.example.domain.api.incoming.StartGameRequest
 import com.example.domain.api.outcoming.{GameConnectedNotification, UserInfoNotification}
 import com.example.domain.game.MainLobbyEvents
-import com.example.service.PlayerActor.ConnectedToGame
+import com.example.service.player.PlayerActor.ConnectedToGame
 import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
 

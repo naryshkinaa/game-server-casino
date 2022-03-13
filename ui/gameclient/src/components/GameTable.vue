@@ -15,7 +15,7 @@
     </div>
     <div class="tableInner" v-if="currentState===GameState.RUNNING">
       <div class="cardWrapper">
-        {{ card1 }}
+        {{ card1 }} {{ card2 }}
       </div>
       <div class="cardWrapper">
         <button :disabled="actionDone" v-on:click='action("FOLD")' class="selectGameButton"><b>Fold</b></button>
@@ -76,10 +76,11 @@ export default {
       }
     },
     gameStartPush: function(data) {
+      console.log(data)
       if(data.gameId === this.gameId){
-        console.log("get cards");
         this.currentState = GameState.RUNNING;
         this.card1 = data.hand.cards[0].rank
+        if(data.hand.cards.length == 2) this.card2 = data.hand.cards[1].rank
       }
     },
     restoreGame: function(game) {

@@ -1,11 +1,11 @@
-package com.example.service
+package com.example.service.lobby
 
-import akka.actor.{Actor, ActorRef, PoisonPill, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import com.example.domain.GameType
 import com.example.domain.api.incoming.UserActionRequest
 import com.example.domain.game.GameLobbyEvents
-import com.example.service.PlayerActor.{RestoreGameInfo, RestoreInfo}
-import com.example.socket.SocketHandler.PlayerInfo
+import com.example.service.player.PlayerActor.{RestoreGameInfo, RestoreInfo}
+import com.example.service.player.PlayerActor
 
 import scala.collection.mutable
 

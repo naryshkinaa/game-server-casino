@@ -1,12 +1,11 @@
-package com.example.service
+package com.example.service.lobby
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import com.example.domain.PlayerActionType.PlayerActionType
 import com.example.domain.game.GameEvents
-import com.example.domain.game.GameLobbyEvents.{GameEnd, GameStart}
 
 class GameLobbyActor(
-               ) extends Actor with ActorLogging {
+                      gameClass: Class[_]
+                    ) extends Actor with ActorLogging {
   private val startedGames = collection.mutable.Map[String, ActorRef]()
   private val waitingGames = collection.mutable.Map[String, ActorRef]()
   private val gamesPerPlayer = collection.mutable.Map[String, collection.mutable.Set[String]]()
@@ -20,17 +19,17 @@ class GameLobbyActor(
         .find(g => !games.contains(g._1))
         .getOrElse {
           val gameId: String = java.util.UUID.randomUUID.toString
-          val newGame = context.actorOf(Props(classOf[SingleCardGameActor], gameId, self))
+          val newGame = context.actorOf(Props(gameClass, gameId, self))
           waitingGames.put(gameId, newGame)
           games.add(gameId)
-          (gameId,newGame)
+          (gameId, newGame)
         }
       gameActor ! GameEvents.PlayerJoin(playerId, player, callback)
     case GameEnd(gameId: String, game: ActorRef) =>
-      log.info(s"Game end ${gameId}")
+      log.info(s"Game end $gameId")
       startedGames.remove(gameId)
     case GameStart(gameId: String, game: ActorRef) =>
-      log.info(s"Game start ${gameId}")
+      log.info(s"Game start $gameId")
       waitingGames.remove(gameId)
       startedGames.put(gameId, game)
   }
