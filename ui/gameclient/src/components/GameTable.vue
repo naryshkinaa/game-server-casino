@@ -15,7 +15,8 @@
     </div>
     <div class="tableInner" v-if="currentState===GameState.RUNNING">
       <div class="cardWrapper">
-        {{ card1 }} {{ card2 }}
+        <span>{{ card1.rank }}{{ suitToChar(card1.suit) }} </span>
+        <span  v-if="card2!=null">{{ card2.rank }}{{ suitToChar(card2.suit) }}</span>
       </div>
       <div class="cardWrapper">
         <button :disabled="actionDone" v-on:click='action("FOLD")' class="selectGameButton"><b>Fold</b></button>
@@ -79,8 +80,8 @@ export default {
       console.log(data)
       if(data.gameId === this.gameId){
         this.currentState = GameState.RUNNING;
-        this.card1 = data.hand.cards[0].rank
-        if(data.hand.cards.length == 2) this.card2 = data.hand.cards[1].rank
+        this.card1 = data.hand.cards[0]
+        if(data.hand.cards.length == 2) this.card2 = data.hand.cards[1]
       }
     },
     restoreGame: function(game) {
@@ -101,6 +102,14 @@ export default {
           }
         }
       })
+    },
+    suitToChar: function(value) {
+      switch(value) {
+        case "Diamond": return "♦"
+        case "Clubs": return "♣"
+        case "Hearts": return "♥"
+        case "Spades": return "♠"
+      }
     }
   }
 }
