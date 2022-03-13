@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 
 object GameLobbyEvents {
 
-  case class NewGame(playerId: String, player: ActorRef)
+  case class NewGame(playerId: String, player: ActorRef, callback: ActorRef)
 
   case class GameEnd(gameId: String, game: ActorRef)
 

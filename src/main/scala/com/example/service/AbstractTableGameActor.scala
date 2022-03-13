@@ -18,19 +18,20 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
   def startGameState(players: Map[String, ActorRef], isRestarted: Boolean): Receive
 
   def waitingState(players: Map[String, ActorRef]): Receive = {
-    case PlayerJoin(playerId, player) =>
+    case PlayerJoin(playerId, player, callback) =>
       if (!players.contains(playerId)) {
         player ! PlayerActor.ConnectedToGame(gameId, self)
+        callback ! PlayerActor.ConnectedToGame(gameId, self)
         if (players.size == tableSize - 1) {
           context.become(startGameState(players + (playerId -> player), false))
+          //note possible chance that new Player (at client) does not complete process Connected to Game message
           gameLobby ! GameLobbyEvents.GameStart(gameId, self)
-
         } else {
           context.become(waitingState(players + (playerId -> player)))
         }
       }
       else {
-        gameLobby ! GameLobbyEvents.NewGame(playerId, player)
+        gameLobby ! GameLobbyEvents.NewGame(playerId, player, callback)
       }
     case PlayerExit(playerId: String, player: ActorRef) =>
       context.become(waitingState(players - playerId))

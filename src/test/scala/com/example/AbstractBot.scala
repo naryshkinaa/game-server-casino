@@ -4,11 +4,10 @@ import akka.actor.{Actor, ActorLogging}
 import akka.util.ByteString
 import com.example.AbstractBot.{Start, StartGame}
 import com.example.domain.GameType.GameType
-import com.example.domain.api.outcoming.{ErrorNotification, GameStartedNotification, UserGameResultNotification, UserInfoNotification}
-import com.example.domain.api._
-import com.example.domain.api.incoming.games.single.PlayFoldAction
+import com.example.domain.Hand
 import com.example.domain.api.incoming.{AuthRequest, RequestType, StartGameRequest, UserActionRequest, WrappedRequest}
-import com.example.domain.{GameType, Hand}
+import com.example.domain.api.outcoming.{ErrorNotification, GameStartedNotification, UserGameResultNotification, UserInfoNotification}
+import com.example.socket.SocketServer
 import com.example.strategy.CardStrategy
 import com.example.util.JsonUtil
 
@@ -21,9 +20,9 @@ class AbstractBot(
                    isLogs: Boolean,
                    strategy: CardStrategy,
                    gameType: GameType,
-                 ) extends Actor with ActorLogging{
+                 ) extends Actor with ActorLogging {
 
-  val client = context.actorOf(Client.props(new InetSocketAddress("localhost", 6000), null), "BotClient")
+  val client = context.actorOf(Client.props(new InetSocketAddress("localhost", SocketServer.port), null), "BotClient")
   Thread.sleep(1000)
 
   def receive: Receive = {
@@ -48,22 +47,22 @@ class AbstractBot(
       }
 
     case GameStartedNotification(gameId, hand: Hand, isRestart) =>
-      if(isRestart) wrapLog(s"Equal on showdown. Game restarted $gameId. Rank ${hand.cards.head.rank}")
+      if (isRestart) wrapLog(s"Equal on showdown. Game restarted $gameId. Rank ${hand.cards.head.rank}")
       else wrapLog(s"Game started $gameId. Rank ${hand.cards.head.rank}")
       val action = strategy.action(hand)
       wrapLog(s"Decide do action: $action")
-      client ! prepareRequest(RequestType.GameAction, UserActionRequest(gameId, JsonUtil.toJson(PlayFoldAction(action))))
+      client ! prepareRequest(RequestType.GameAction, UserActionRequest(gameId, action))
 
     case ErrorNotification(message) =>
       wrapLog(s"Error: $message")
 
-    case UserGameResultNotification(gameId, message ,balance) =>
+    case UserGameResultNotification(gameId,_ , message, balance) =>
       wrapLog(s"Game end: $message. Balance: $balance")
       self ! StartGame
   }
 
-  private def wrapLog(message: String): Unit ={
-    if(isLogs) log.info(message)
+  private def wrapLog(message: String): Unit = {
+    if (isLogs) log.info(message)
   }
 
   private def prepareRequest(requestType: RequestType.Value, body: AnyRef): ByteString = {

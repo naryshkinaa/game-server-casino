@@ -1,0 +1,114 @@
+<template>
+  <div class="header">
+    <h2>Evolution Game Lobby</h2>
+    <label class="nameLabel">Enter your name</label>
+    <input v-model="username">
+    <button v-on:click="connect" id="connectButton">Connect</button>
+<!--    <br>-->
+<!--    <br>-->
+    <label class="balanceLabel">Balance</label>
+    <label class="balanceValue">{{ balance }}</label>
+  </div>
+  <div v-if="balance != null" class="gamesView">
+    <GamesComponent ref="childComponent"/>
+  </div>
+</template>
+<script>
+import GamesComponent from './components/Games.vue';
+import {API} from './api';
+// import { io } from "socket.io-client";
+
+export default {
+  name: 'app',
+  components: {
+    GamesComponent
+  },
+  data: function () {
+    return {
+      username: null,
+      balance: null,
+      socket: null
+    }
+  },
+  mounted: function () {
+    console.log("Mounted")
+    //here should be socket connection, but i have some problems with implementation, so temp solution is rest ping every second
+    // const socket = io.connect("http://localhost:8080")
+    // this.socket = socket;
+  },
+  methods: {
+    connect: function () {
+      API.login(this.username, response => {
+        this.balance = "$" + response.data.balance;
+        let self = this;
+        window.setTimeout(function(){
+          self.getEvents();
+        },1000);
+      })
+    },
+    getEvents: function (){
+      API.getEvents(response =>  {
+        if(response.data.gameResult != null) {
+          console.log(response.data.gameResult[0]);
+          this.balance= response.data.gameResult[0].balance;
+          response.data.gameResult.forEach(
+              d => this.$refs.childComponent.gameResultPush(d)
+          )
+        }
+        if(response.data.gameStarted != null) {
+          response.data.gameStarted.forEach(
+              d => this.$refs.childComponent.gameStartPush(d)
+          )
+        }
+      });
+      let self = this;
+      window.setTimeout(function(){
+        self.getEvents()
+      },1000)
+    }
+  }
+}
+</script>
+<style>
+html,body {
+  height:calc(100% - 16px);
+}
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+}
+
+.nameLabel {
+  margin-right: 10px;
+}
+
+.balanceLabel {
+  margin-left: 20px;
+  margin-right: 10px;
+}
+
+#connectButton {
+  margin-left: 10px;
+}
+
+.balanceValue {
+  width: 200px;
+}
+.header {
+  height: 10%;
+}
+.gamesView {
+  width: 100%;
+  height: 90%;
+}
+.logo {
+  width: 200px;
+  height: 40px;
+  padding-top: 10px;
+}
+</style>

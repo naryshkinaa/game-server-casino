@@ -49,7 +49,7 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
           client ! prepareRequest(ResponseType.Error, ErrorNotification("User already authenticated"))
         case RequestType.StartGame =>
           val parsed = JsonUtil.fromJson[StartGameRequest](wrapper.serializedBody)
-          mainLobby ! MainLobbyEvents.NewGame(playerId, parsed.gameType)
+          mainLobby ! MainLobbyEvents.NewGame(playerId, parsed.gameType, None)
         case RequestType.GameAction =>
           val parsed = JsonUtil.fromJson[UserActionRequest](wrapper.serializedBody)
           playerActor ! parsed
@@ -57,6 +57,7 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
 
     case UserPush(responseType, body) =>
       client ! prepareRequest(responseType, body)
+
 
     case PeerClosed =>
       println("Server: PeerClosed")

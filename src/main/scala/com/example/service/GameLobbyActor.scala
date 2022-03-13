@@ -14,19 +14,18 @@ class GameLobbyActor(
   import com.example.domain.game.GameLobbyEvents._
 
   def receive: Receive = {
-    case NewGame(playerId, player) =>
+    case NewGame(playerId, player, callback) =>
       val games = gamesPerPlayer.getOrElseUpdate(playerId, collection.mutable.Set[String]())
-      val gameActor: ActorRef = waitingGames
+      val (gameId, gameActor) = waitingGames
         .find(g => !games.contains(g._1))
-        .map(_._2)
         .getOrElse {
           val gameId: String = java.util.UUID.randomUUID.toString
           val newGame = context.actorOf(Props(classOf[SingleCardGameActor], gameId, self))
           waitingGames.put(gameId, newGame)
           games.add(gameId)
-          newGame
+          (gameId,newGame)
         }
-      gameActor ! GameEvents.PlayerJoin(playerId, player)
+      gameActor ! GameEvents.PlayerJoin(playerId, player, callback)
     case GameEnd(gameId: String, game: ActorRef) =>
       log.info(s"Game end ${gameId}")
       startedGames.remove(gameId)

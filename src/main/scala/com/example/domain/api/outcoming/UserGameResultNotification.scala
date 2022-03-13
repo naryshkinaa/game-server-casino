@@ -5,7 +5,8 @@ import com.example.domain.GameResultType
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 
 case class UserGameResultNotification(
-                           @JsonScalaEnumeration(classOf[GameResultType]) result: GameResult,
-                           message: String,
-                           balance: Int
-                         ) extends UserNotification
+                                       gameId: String,
+                                       @JsonScalaEnumeration(classOf[GameResultType]) result: GameResult,
+                                       message: String,
+                                       balance: Int
+                                     ) extends UserNotification

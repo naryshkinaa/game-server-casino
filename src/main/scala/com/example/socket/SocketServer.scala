@@ -10,7 +10,7 @@ class SocketServer(mainLobby: ActorRef) extends Actor {
 
   import context.system
 
-  IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", 6000))
+  IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", SocketServer.port))
 
   def receive = {
     case Bound(localAddress) =>
@@ -28,4 +28,8 @@ class SocketServer(mainLobby: ActorRef) extends Actor {
       connection ! Register(handler)
   }
 
+}
+
+object SocketServer {
+  val port = 8081
 }

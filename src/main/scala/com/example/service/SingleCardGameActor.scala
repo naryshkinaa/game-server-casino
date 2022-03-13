@@ -2,9 +2,8 @@ package com.example.service
 
 import akka.actor.{ActorRef, PoisonPill}
 import com.example.domain.PlayerActionType.{FOLD, PLAY, PlayerActionType}
-import com.example.domain.api.incoming.games.single.PlayFoldAction
-import com.example.domain.game.{AutoFoldAction, UserUntypedAction}
 import com.example.domain.game.GameEvents.PlayerExit
+import com.example.domain.game.{AutoFoldAction, UserAction}
 import com.example.domain.{Deck, GameResult, Hand, PlayerActionType}
 import com.example.service.PlayerActor.{GameStarted, Lose, Win}
 import com.example.service.compare.{HandCompare, OneCardCompare}
@@ -53,9 +52,8 @@ class SingleCardGameActor(
                ): Receive = {
     case AutoFoldAction(playerId) =>
       processAction(playerId, PlayerActionType.FOLD, players, playerHands, playersAction)
-    case UserUntypedAction(playerId, serializedAction) =>
-      val parsed = JsonUtil.fromJson[PlayFoldAction](serializedAction)
-      processAction(playerId, parsed.action, players, playerHands, playersAction)
+    case UserAction(playerId, action) =>
+      processAction(playerId, action, players, playerHands, playersAction)
     case PlayerExit(playerId: String, player: ActorRef) =>
       self ! AutoFoldAction(playerId)
   }
