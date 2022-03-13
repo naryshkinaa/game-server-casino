@@ -1,7 +1,8 @@
 package com.example.service
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.example.domain.game.GameLobbyEvents
+import com.example.domain.api.outcoming.GameInfoNotification
+import com.example.domain.game.{GameEvents, GameLobbyEvents}
 
 trait AbstractTableGameActor extends Actor with ActorLogging {
 
@@ -35,6 +36,8 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
       }
     case PlayerExit(playerId: String, player: ActorRef) =>
       context.become(waitingState(players - playerId))
+
+    case GameEvents.GetGameInfo(playerId, callback) => callback ! GameInfoNotification(gameId, null, true, false)
   }
 
   def receive = {

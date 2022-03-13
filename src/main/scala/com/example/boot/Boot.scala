@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.example.rest.{ConnectRoute, GetEventsRoute, StartGameRoute, UserActionRoute}
+import com.example.rest.{ConnectRoute, GetEventsRoute, GetGameInfoRoute, StartGameRoute, UserActionRoute}
 import com.example.service.{GameLobbyActor, MainLobbyActor, SingleCardGameActor}
 import com.example.socket.SocketServer
 
@@ -36,7 +36,8 @@ object Boot extends App {
           ConnectRoute.route(mainLobby),
           StartGameRoute.route(mainLobby),
           GetEventsRoute.route(mainLobby),
-          UserActionRoute.route(mainLobby)
+          UserActionRoute.route(mainLobby),
+          GetGameInfoRoute.route(mainLobby)
         )
       )
 

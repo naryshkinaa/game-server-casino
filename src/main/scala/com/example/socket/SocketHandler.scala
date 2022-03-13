@@ -6,7 +6,7 @@ import com.example.domain.api.incoming._
 import com.example.domain.api.outcoming.{ErrorNotification, ResponseType, UserInfoNotification, WrappedResponse}
 import com.example.domain.game.MainLobbyEvents
 import com.example.domain.{Hand, UserPush}
-import com.example.socket.SocketHandler.SuccessAuth
+import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
 
 class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with ActorLogging {
@@ -26,7 +26,7 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
           mainLobby ! MainLobbyEvents.Connect(parsed.player)
         case _ => client ! prepareRequest(ResponseType.Error, ErrorNotification("User NOT authenticated"))
       }
-    case SuccessAuth(playerId, playerActor, balance, games) =>
+    case PlayerInfo(playerId, playerActor, balance, games) =>
       context.become(authState(playerId, playerActor))
       client ! prepareRequest(ResponseType.AuthSuccess, UserInfoNotification(balance, games))
 
@@ -68,11 +68,11 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
 
 object SocketHandler {
 
-  case class SuccessAuth(
+  case class PlayerInfo(
                           playerId: String,
                           playerActor: ActorRef,
                           balance: Int,
-                          activeGames: Map[String, Hand]
+                          activeGames: List[String]
                         )
 
 }

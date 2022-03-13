@@ -21,4 +21,6 @@ object MainLobbyEvents {
                          action: PlayerActionType
                        )
 
+  case class GetGameInfo(playerId: String, gameId: String)
+
 }

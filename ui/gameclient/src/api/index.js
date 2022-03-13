@@ -16,6 +16,10 @@ export const API = {
 
     getEvents: (callback) => axios
         .get('get-events')
+        .then(callback),
+
+    getGameInfo: (gameId, callback) => axios
+        .post('get-game-info',{"gameId": gameId})
         .then(callback)
 }
 

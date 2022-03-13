@@ -54,6 +54,12 @@ export default {
         console.log(this.gameId)
       })
     },
+    toNewGame: function(){
+      this.currentState = GameState.SELECT_GAME;
+      this.gameId = null;
+      this.actionDone = false;
+      this.result = null;
+    },
     action: function (actionType) {
       this.actionDone = true;
       API.performAction(this.gameId, actionType, () => {
@@ -64,10 +70,7 @@ export default {
         this.result = data.message
         var self = this;
         window.setTimeout(function (){
-          self.currentState = GameState.SELECT_GAME;
-          self.gameId = null;
-          self.actionDone = false;
-          self.result = null;
+         self.toNewGame();
         },3000)
 
       }
@@ -78,6 +81,25 @@ export default {
         this.currentState = GameState.RUNNING;
         this.card1 = data.hand.cards[0].rank
       }
+    },
+    restoreGame: function(game) {
+      this.gameId = game;
+      this.currentState = GameState.RESTORING;
+      API.getGameInfo(game, response =>  {
+        if(!response.data.exist) {
+          this.toNewGame();
+        }
+        else {
+          if(response.data.hand != null){
+            this.currentState = GameState.RUNNING;
+            this.card1 = response.data.hand.cards[0].rank;
+            this.actionDone = response.data.actionDone;
+          }
+          else {
+            this.currentState = GameState.WAITING_OPPONENT;
+          }
+        }
+      })
     }
   }
 }

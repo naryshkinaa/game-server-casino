@@ -9,7 +9,7 @@ import akka.util.Timeout
 import com.example.domain.api.incoming.AuthRequest
 import com.example.domain.api.outcoming.UserInfoNotification
 import com.example.domain.game.MainLobbyEvents
-import com.example.socket.SocketHandler.SuccessAuth
+import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
 
 import scala.concurrent.duration.DurationInt
@@ -28,9 +28,9 @@ object ConnectRoute {
             val future = mainLobby
               .ask(MainLobbyEvents.Connect(parsed.player))
             onComplete(future) {
-              case Success(successAuth: SuccessAuth) =>
-                setCookie(HttpCookie("userName", value = successAuth.playerId)) {
-                  complete(JsonUtil.toJson(UserInfoNotification(successAuth.balance, successAuth.activeGames)))
+              case Success(info: PlayerInfo) =>
+                setCookie(HttpCookie("userName", value = info.playerId)) {
+                  complete(JsonUtil.toJson(UserInfoNotification(info.balance, info.activeGames)))
                 }
               case Failure(exception) => sys.error(exception.getMessage)
             }

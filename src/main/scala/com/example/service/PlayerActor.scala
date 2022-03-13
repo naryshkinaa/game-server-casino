@@ -2,9 +2,10 @@ package com.example.service
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.example.domain.api.incoming.UserActionRequest
-import com.example.domain.api.outcoming.{GameStartedNotification, GetEventsNotification, ResponseType, UserGameResultNotification}
-import com.example.domain.game.UserAction
+import com.example.domain.api.outcoming.{GameInfoNotification, GameStartedNotification, GetEventsNotification, ResponseType, UserGameResultNotification}
+import com.example.domain.game.{GameEvents, UserAction}
 import com.example.domain.{GameResult, Hand, UserPush}
+import com.example.socket.SocketHandler.PlayerInfo
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -41,6 +42,14 @@ class PlayerActor(playerId: String, socketActor: ActorRef) extends Actor with Ac
       gameStarted.clear()
     }
 
+    case RestoreInfo(callback) =>
+      callback ! PlayerInfo(playerId, self, tokens, games.keys.toList)
+
+    case RestoreGameInfo(gameId, callback) =>
+      val gameActor = games.get(gameId)
+      if(gameActor.isEmpty) callback ! GameInfoNotification(gameId, null, false, false)
+      else gameActor.get ! GameEvents.GetGameInfo(playerId, callback)
+
     //FROM user
     case UserActionRequest(gameId, action) => games.get(gameId).foreach(g => g ! UserAction(playerId, action))
   }
@@ -65,5 +74,9 @@ object PlayerActor {
   case class ConnectedToGame(gameId: String, game: ActorRef)
 
   case class GetEvents(callback : ActorRef)
+
+  case class RestoreInfo(callback : ActorRef)
+
+  case class RestoreGameInfo(gameId: String, callback : ActorRef)
 
 }

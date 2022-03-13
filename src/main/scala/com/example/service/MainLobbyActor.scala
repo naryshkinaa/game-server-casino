@@ -4,7 +4,8 @@ import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import com.example.domain.GameType
 import com.example.domain.api.incoming.UserActionRequest
 import com.example.domain.game.GameLobbyEvents
-import com.example.socket.SocketHandler.SuccessAuth
+import com.example.service.PlayerActor.{RestoreGameInfo, RestoreInfo}
+import com.example.socket.SocketHandler.PlayerInfo
 
 import scala.collection.mutable
 
@@ -33,8 +34,13 @@ class MainLobbyActor(
         onlinePlayers.put(playerId, newActor)
         newActor
       })
-      //todo need restore data
-      sender() ! SuccessAuth(playerId, playerActor, 1000, Map())
+      playerActor ! RestoreInfo(sender())
+
+    case GetGameInfo(playerId, gameId) =>
+      val player = onlinePlayers.get(playerId)
+      if (player.isEmpty) sender() ! "Player not connected"
+      player.get ! RestoreGameInfo(gameId, sender())
+
 
     case GetEvents(playerId) => {
       val player = onlinePlayers.get(playerId)

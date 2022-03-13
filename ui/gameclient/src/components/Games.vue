@@ -35,6 +35,12 @@ export default {
       this.$refs.child2.gameStartPush(data);
       this.$refs.child3.gameStartPush(data);
       this.$refs.child4.gameStartPush(data);
+    },
+    restoreGames: function (games){
+      if(games[0] != null) this.$refs.child1.restoreGame(games[0]);
+      if(games[1] != null) this.$refs.child1.restoreGame(games[1]);
+      if(games[2] != null) this.$refs.child1.restoreGame(games[2]);
+      if(games[3] != null) this.$refs.child1.restoreGame(games[3]);
     }
   }
 }

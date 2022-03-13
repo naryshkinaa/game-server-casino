@@ -31,17 +31,23 @@ export default {
     }
   },
   mounted: function () {
-    console.log("Mounted")
+    console.log("Mounted");
+    this.username = localStorage.getItem("user");
     //here should be socket connection, but i have some problems with implementation, so temp solution is rest ping every second
     // const socket = io.connect("http://localhost:8080")
     // this.socket = socket;
   },
   methods: {
     connect: function () {
+      localStorage.setItem("user", this.username);
       API.login(this.username, response => {
+
         this.balance = "$" + response.data.balance;
         let self = this;
         window.setTimeout(function(){
+          if(response.data.activeGames != null) {
+            self.$refs.childComponent.restoreGames(response.data.activeGames)
+          }
           self.getEvents();
         },1000);
       })

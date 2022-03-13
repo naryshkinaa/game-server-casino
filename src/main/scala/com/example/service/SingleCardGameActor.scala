@@ -2,12 +2,12 @@ package com.example.service
 
 import akka.actor.{ActorRef, PoisonPill}
 import com.example.domain.PlayerActionType.{FOLD, PLAY, PlayerActionType}
+import com.example.domain.api.outcoming.GameInfoNotification
 import com.example.domain.game.GameEvents.PlayerExit
-import com.example.domain.game.{AutoFoldAction, UserAction}
+import com.example.domain.game.{AutoFoldAction, GameEvents, UserAction}
 import com.example.domain.{Deck, GameResult, Hand, PlayerActionType}
 import com.example.service.PlayerActor.{GameStarted, Lose, Win}
 import com.example.service.compare.{HandCompare, OneCardCompare}
-import com.example.util.JsonUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
@@ -17,7 +17,7 @@ class SingleCardGameActor(
                            val gameLobby: ActorRef
                          ) extends AbstractTableGameActor {
   val tableSize: Int = 2
-  val timeLimitSec: Int = 15
+  val timeLimitSec: Int = 20
   val compare: HandCompare = new OneCardCompare()
 
   def startGameState(players: Map[String, ActorRef], isRestarted: Boolean): Receive = {
@@ -56,6 +56,7 @@ class SingleCardGameActor(
       processAction(playerId, action, players, playerHands, playersAction)
     case PlayerExit(playerId: String, player: ActorRef) =>
       self ! AutoFoldAction(playerId)
+    case GameEvents.GetGameInfo(playerId, callback) => callback ! GameInfoNotification(gameId, playerHands(playerId), true, playersAction.contains(playerId))
   }
 
   private def processAction(

@@ -7,5 +7,5 @@ import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 
 case class Card(
                  @JsonScalaEnumeration(classOf[CardSuitType]) suit: CardSuit,
-                 @JsonScalaEnumeration(classOf[CardSuitType]) rank: CardRank
+                 @JsonScalaEnumeration(classOf[CardRankType]) rank: CardRank
                )

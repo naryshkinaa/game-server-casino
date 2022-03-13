@@ -8,4 +8,6 @@ object GameEvents {
 
   case class PlayerExit(playerId: String, player: ActorRef)
 
+  case class GetGameInfo(playerId: String, callback: ActorRef)
+
 }
