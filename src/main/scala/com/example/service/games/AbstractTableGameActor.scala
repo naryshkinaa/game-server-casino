@@ -37,7 +37,7 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
         callback ! GameConnectedResponse(gameId)
         if (players.size == tableSize - 1) {
           context.become(startGameState(players + (playerId -> player), false))
-          gameLobby ! GameLobbyActor.GameStart(gameId, self)
+          gameLobby ! GameLobbyActor.GameStart(gameId)
         } else {
           context.become(waitingState(players + (playerId -> player)))
         }
@@ -86,34 +86,38 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
 
     val player1 = players.keys.head
     val player2 = players.keys.toList(1)
+    var finished = false;
     (playersAction(player1), playersAction(player2)) match {
       case (FOLD, FOLD) =>
         players(player1) ! Lose(gameId, fold_fold, s"Both players FOLD, LOSE $fold_fold token")
         players(player2) ! Lose(gameId, fold_fold, s"Both players FOLD, LOSE $fold_fold token")
-        self ! PoisonPill
+        finished = true
       case (FOLD, PLAY) =>
         players(player1) ! Lose(gameId, fold_play, s"You FOLD, opponent PLAY, LOSE $fold_play token")
         players(player2) ! Win(gameId, fold_play, s"You PLAY, opponent FOLD, WIN $fold_play token")
-        self ! PoisonPill
+        finished = true
       case (PLAY, FOLD) =>
         players(player1) ! Win(gameId, fold_play, s"You PLAY, opponent FOLD, WIN $fold_play token")
         players(player2) ! Lose(gameId, fold_play, s"You FOLD, opponent PLAY, LOSE $fold_play token")
-        self ! PoisonPill
+        finished = true
       case (PLAY, PLAY) =>
         compare.compare(playerHands(player1), playerHands(player2)) match {
           case GameResult.Win =>
             players(player1) ! Win(gameId, play_play, s"Both players PLAY, WIN $play_play token. \n Showdown: you ${playerHands(player1)}, op ${playerHands(player2)}")
             players(player2) ! Lose(gameId, play_play, s"Both players PLAY, LOSE $play_play token. \n Showdown: you ${playerHands(player2)}, op ${playerHands(player1)}")
-            self ! PoisonPill
+            finished = true
           case GameResult.Lose =>
             players(player1) ! Lose(gameId, play_play, s"Both players PLAY, LOSE $play_play token. \n Showdown: you ${playerHands(player1)}, op ${playerHands(player2)}")
             players(player2) ! Win(gameId, play_play, s"Both players PLAY, WIN $play_play token. \n Showdown: you ${playerHands(player2)}, op ${playerHands(player1)}")
-            self ! PoisonPill
+            finished = true
           case GameResult.Equal =>
             context.become(startGameState(players, true))
         }
     }
-
+    if(finished) {
+      gameLobby ! GameLobbyActor.GameEnd(gameId)
+      self ! PoisonPill
+    }
   }
 
   def receive = {

@@ -23,13 +23,13 @@ class GameLobbyActor(
           (gameId, newGame)
         }
       gameActor ! AbstractTableGameActor.PlayerJoin(playerId, player, callback)
-    case GameLobbyActor.GameEnd(gameId: String, game: ActorRef) =>
+    case GameLobbyActor.GameEnd(gameId) =>
       log.info(s"Game end $gameId")
       startedGames.remove(gameId)
-    case GameLobbyActor.GameStart(gameId: String, game: ActorRef) =>
+    case GameLobbyActor.GameStart(gameId) =>
       log.info(s"Game start $gameId")
       waitingGames.remove(gameId)
-      startedGames.put(gameId, game)
+      startedGames.put(gameId, sender())
   }
 }
 
@@ -37,9 +37,9 @@ object GameLobbyActor {
 
   case class NewGame(playerId: String, player: ActorRef, callback: ActorRef)
 
-  case class GameEnd(gameId: String, game: ActorRef)
+  case class GameEnd(gameId: String)
 
-  case class GameStart(gameId: String, game: ActorRef)
+  case class GameStart(gameId: String)
 
 }
 

@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import com.example.domain.game.GameType.GameType
 import com.example.domain.game.PlayerActionType.PlayerActionType
 import com.example.domain.api.incoming.UserActionRequest
+import com.example.domain.api.outcoming.response.GetEventsResponse
 import com.example.domain.game.GameType
 import com.example.service.player.PlayerActor
 import com.example.service.player.PlayerActor.{RestoreGameInfo, RestoreInfo}
@@ -43,7 +44,7 @@ class MainLobbyActor(
 
     case MainLobbyActor.GetEvents(playerId) => {
       val player = onlinePlayers.get(playerId)
-      if (player.isEmpty) sender() ! "Player not connected"
+      if (player.isEmpty) sender() ! GetEventsResponse(Nil, Nil)
       else player.get ! PlayerActor.GetEvents(sender())
     }
 

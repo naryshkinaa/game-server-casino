@@ -14,7 +14,6 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration.DurationInt
 
 class ConnectAndTestGame extends AnyFunSpec with Matchers with ScalatestRouteTest {
-
   val mat = ActorMaterializer()
   implicit val keepAlive = 30 seconds
 

@@ -15,12 +15,10 @@ import com.example.socket.SocketServer
 
 object Boot extends App {
 
-  // create an actor system for application
   implicit val system: ActorSystem = ActorSystem("simple-http")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   implicit val log = Logging(system, "main")
-
   val singleGameActor = system.actorOf(Props(classOf[GameLobbyActor], classOf[SingleCardGameActor]), "singleCardGameLobby")
   val doubleGameActor = system.actorOf(Props(classOf[GameLobbyActor], classOf[DoubleCardGameActor]), "doubleCardGameLobby")
   val mainLobby = system.actorOf(Props(classOf[MainLobbyActor], singleGameActor, doubleGameActor), "mainLobby")
