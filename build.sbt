@@ -1,4 +1,3 @@
-//import AssemblyKeys._
 
 name := "rest"
 
@@ -34,8 +33,5 @@ libraryDependencies ++= Seq(
 ).map(_ % circeVersion)
 
 resolvers ++= Seq(
-  //    "Spray repository" at "https://repo.spray.io",
   //    "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 )
-
-//assemblySettings

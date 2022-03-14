@@ -25,11 +25,9 @@ Params (located in the file Params)
  - socketPort - socket port of application (Default 8081)
 
 Run
- - server: 
-   - sbt build
-   - sbt ~run
+ - server: standard Idea start App
   - client: from ui/gameclient folder 
-   - npm run build 
+   - npm install 
    - npm run serve
    - http://localhost:3000 
 
