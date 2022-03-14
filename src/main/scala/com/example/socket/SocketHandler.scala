@@ -3,9 +3,8 @@ package com.example.socket
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.util.ByteString
 import com.example.domain.api.incoming._
-import com.example.domain.api.outcoming.{ErrorNotification, ResponseType, UserInfoNotification, WrappedResponse}
-import com.example.domain.game.MainLobbyEvents
-import com.example.domain.{Hand, UserPush}
+import com.example.domain.api.outcoming.{ErrorNotification, ResponseType, UserInfoNotification, UserPush, WrappedResponse}
+import com.example.service.lobby.MainLobbyActor
 import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
 
@@ -23,11 +22,11 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
       wrapper.requestType match {
         case RequestType.Auth =>
           val parsed = JsonUtil.fromJson[AuthRequest](wrapper.serializedBody)
-          mainLobby ! MainLobbyEvents.Connect(parsed.player)
+          mainLobby ! MainLobbyActor.Connect(parsed.player)
         case _ => client ! prepareRequest(ResponseType.Error, ErrorNotification("User NOT authenticated"))
       }
     case PlayerInfo(playerId, playerActor, balance, games) =>
-      context.become(authState(playerId, playerActor))
+      context.become(authenticatedState(playerId, playerActor))
       client ! prepareRequest(ResponseType.AuthSuccess, UserInfoNotification(balance, games))
 
     case PeerClosed =>
@@ -40,16 +39,15 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
   }
 
 
-  def authState(playerId: String, playerActor: ActorRef): Receive = {
+  def authenticatedState(playerId: String, playerActor: ActorRef): Receive = {
     case Received(data) =>
-      //      println("Server2: received " + data.utf8String)
       val wrapper = JsonUtil.fromJson[WrappedRequest](data.utf8String)
       wrapper.requestType match {
         case RequestType.Auth =>
           client ! prepareRequest(ResponseType.Error, ErrorNotification("User already authenticated"))
         case RequestType.StartGame =>
           val parsed = JsonUtil.fromJson[StartGameRequest](wrapper.serializedBody)
-          mainLobby ! MainLobbyEvents.NewGame(playerId, parsed.gameType, None)
+          mainLobby ! MainLobbyActor.NewGame(playerId, parsed.gameType, None)
         case RequestType.GameAction =>
           val parsed = JsonUtil.fromJson[UserActionRequest](wrapper.serializedBody)
           playerActor ! parsed

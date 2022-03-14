@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <h2>Evolution Game Lobby</h2>
+    <h2>Game Lobby</h2>
     <label class="nameLabel">Enter your name</label>
     <input v-model="username">
     <button v-on:click="connect" id="connectButton">Connect</button>
@@ -31,7 +31,6 @@ export default {
     }
   },
   mounted: function () {
-    console.log("Mounted");
     this.username = localStorage.getItem("user");
     //here should be socket connection, but i have some problems with implementation, so temp solution is rest ping every second
     // const socket = io.connect("http://localhost:8080")
@@ -55,7 +54,6 @@ export default {
     getEvents: function (){
       API.getEvents(response =>  {
         if(response.data.gameResult != null) {
-          console.log(response.data.gameResult[0]);
           this.balance= response.data.gameResult[0].balance;
           response.data.gameResult.forEach(
               d => this.$refs.childComponent.gameResultPush(d)
@@ -106,11 +104,11 @@ html,body {
   width: 200px;
 }
 .header {
-  height: 10%;
+  height: 15%;
 }
 .gamesView {
   width: 100%;
-  height: 90%;
+  height: 85%;
 }
 .logo {
   width: 200px;

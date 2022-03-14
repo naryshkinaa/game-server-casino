@@ -2,8 +2,7 @@ package com.example.service.games
 
 import akka.actor.ActorRef
 import com.example.config.Params
-import com.example.domain.game.AutoFoldAction
-import com.example.domain.{Deck, Hand}
+import com.example.domain.game.{AutoFoldAction, Deck, Hand}
 import com.example.service.compare.{HandCompare, OneCardCompare}
 import com.example.service.player.PlayerActor.GameStarted
 
@@ -13,7 +12,7 @@ import scala.concurrent.duration.DurationInt
 class SingleCardGameActor(
                            val gameId: String,
                            val gameLobby: ActorRef
-                         ) extends AbstractTableGameActor{
+                         ) extends AbstractTableGameActor {
   val tableSize: Int = 2
   val timeLimitSec: Int = Params.timeLimitSec
   val compare: HandCompare = new OneCardCompare()

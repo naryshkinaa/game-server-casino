@@ -1,6 +1,5 @@
-package com.example.domain
+package com.example.domain.game
 
-import com.example.domain.api.outcoming.ResponseType
 import com.fasterxml.jackson.core.`type`.TypeReference
 
 object CardSuit extends Enumeration {

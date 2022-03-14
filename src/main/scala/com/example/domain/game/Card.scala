@@ -1,8 +1,7 @@
-package com.example.domain
+package com.example.domain.game
 
-import com.example.domain.CardRank.CardRank
-import com.example.domain.CardSuit.CardSuit
-import com.example.domain.api.outcoming.ResponseTypeType
+import com.example.domain.game.CardRank.CardRank
+import com.example.domain.game.CardSuit.CardSuit
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 
 case class Card(

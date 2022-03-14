@@ -8,7 +8,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.example.domain.api.incoming.AuthRequest
 import com.example.domain.api.outcoming.UserInfoNotification
-import com.example.domain.game.MainLobbyEvents
+import com.example.service.lobby.MainLobbyActor
 import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
 
@@ -26,7 +26,7 @@ object ConnectRoute {
           entity(as[String]) { request =>
             val parsed = JsonUtil.fromJson[AuthRequest](request)
             val future = mainLobby
-              .ask(MainLobbyEvents.Connect(parsed.player))
+              .ask(MainLobbyActor.Connect(parsed.player))
             onComplete(future) {
               case Success(info: PlayerInfo) =>
                 setCookie(HttpCookie("userName", value = info.playerId)) {

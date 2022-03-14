@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.{ScalatestRouteTest, WSProbe}
 import akka.stream.ActorMaterializer
 import com.example.bot.AbstractBot
 import com.example.bot.strategy.{AgroSingleCardStrategy, BaseSingleCardStrategy}
-import com.example.domain.GameType
+import com.example.domain.game.GameType
 import com.example.service.lobby.{GameLobbyActor, MainLobbyActor}
 import com.example.socket.SocketServer
 import org.scalatest.funspec.AnyFunSpec

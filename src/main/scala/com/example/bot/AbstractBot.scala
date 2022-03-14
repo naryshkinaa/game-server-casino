@@ -4,10 +4,10 @@ import akka.actor.{Actor, ActorLogging}
 import akka.util.ByteString
 import com.example.bot.strategy.CardStrategy
 import com.example.config.Params
-import com.example.domain.GameType.GameType
-import com.example.domain.Hand
+import com.example.domain.game.GameType.GameType
 import com.example.domain.api.incoming._
 import com.example.domain.api.outcoming.{ErrorNotification, GameStartedNotification, UserGameResultNotification, UserInfoNotification}
+import com.example.domain.game.Hand
 import com.example.socket.SocketServer
 import com.example.util.JsonUtil
 

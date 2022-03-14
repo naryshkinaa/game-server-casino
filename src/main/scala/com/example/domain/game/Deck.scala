@@ -1,4 +1,6 @@
-package com.example.domain
+package com.example.domain.game
+
+import com.example.domain.game
 
 case class Deck() {
   var cards = Deck.standardCards.toList
@@ -17,5 +19,5 @@ object Deck {
     for (
       suit <- CardSuit.values;
       rank <- CardRank.values
-    ) yield Card(suit, rank)
+    ) yield game.Card(suit, rank)
 }

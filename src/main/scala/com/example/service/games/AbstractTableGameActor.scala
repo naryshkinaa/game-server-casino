@@ -1,25 +1,30 @@
 package com.example.service.games
 
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill}
-import com.example.domain.PlayerActionType.{FOLD, PLAY, PlayerActionType}
 import com.example.domain.api.outcoming.GameInfoNotification
-import com.example.domain.game.{AutoFoldAction, GameEvents, GameLobbyEvents, UserAction}
-import com.example.domain.{GameResult, Hand, PlayerActionType}
+import com.example.domain.game.PlayerActionType.{FOLD, PLAY, PlayerActionType}
+import com.example.domain.game._
 import com.example.service.compare.HandCompare
+import com.example.service.lobby.GameLobbyActor
 import com.example.service.player.PlayerActor
 import com.example.service.player.PlayerActor.{Lose, Win}
 
 trait AbstractTableGameActor extends Actor with ActorLogging {
 
-  import com.example.domain.game.GameEvents._
+  import AbstractTableGameActor._
 
   def gameId: String
+
   def gameLobby: ActorRef
+
   def tableSize: Int
+
   def compare: HandCompare
 
   def fold_fold: Int
+
   def fold_play: Int
+
   def play_play: Int
 
   def startGameState(players: Map[String, ActorRef], isRestarted: Boolean): Receive
@@ -32,18 +37,18 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
         if (players.size == tableSize - 1) {
           context.become(startGameState(players + (playerId -> player), false))
           //note possible chance that new Player (at client) does not complete process Connected to Game message
-          gameLobby ! GameLobbyEvents.GameStart(gameId, self)
+          gameLobby ! GameLobbyActor.GameStart(gameId, self)
         } else {
           context.become(waitingState(players + (playerId -> player)))
         }
       }
       else {
-        gameLobby ! GameLobbyEvents.NewGame(playerId, player, callback)
+        gameLobby ! GameLobbyActor.NewGame(playerId, player, callback)
       }
     case PlayerExit(playerId: String, player: ActorRef) =>
       context.become(waitingState(players - playerId))
 
-    case GameEvents.GetGameInfo(playerId, callback) => callback ! GameInfoNotification(gameId, null, true, false)
+    case AbstractTableGameActor.GetGameInfo(playerId, callback) => callback ! GameInfoNotification(gameId, null, true, false)
   }
 
   def gameState(
@@ -57,7 +62,7 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
       processAction(playerId, action, players, playerHands, playersAction)
     case PlayerExit(playerId: String, player: ActorRef) =>
       self ! AutoFoldAction(playerId)
-    case GameEvents.GetGameInfo(playerId, callback) => callback ! GameInfoNotification(gameId, playerHands(playerId), true, playersAction.contains(playerId))
+    case AbstractTableGameActor.GetGameInfo(playerId, callback) => callback ! GameInfoNotification(gameId, playerHands(playerId), true, playersAction.contains(playerId))
   }
 
   private def processAction(
@@ -74,10 +79,10 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
   }
 
   private def resolveGameResults(
-                          players: Map[String, ActorRef],
-                          playerHands: Map[String, Hand],
-                          playersAction: Map[String, PlayerActionType]
-                        ): Unit = {
+                                  players: Map[String, ActorRef],
+                                  playerHands: Map[String, Hand],
+                                  playersAction: Map[String, PlayerActionType]
+                                ): Unit = {
 
     val player1 = players.keys.head
     val player2 = players.keys.toList(1)
@@ -114,4 +119,14 @@ trait AbstractTableGameActor extends Actor with ActorLogging {
   def receive = {
     waitingState(Map())
   }
+}
+
+object AbstractTableGameActor {
+
+  case class PlayerJoin(playerId: String, player: ActorRef, callback: ActorRef)
+
+  case class PlayerExit(playerId: String, player: ActorRef)
+
+  case class GetGameInfo(playerId: String, callback: ActorRef)
+
 }

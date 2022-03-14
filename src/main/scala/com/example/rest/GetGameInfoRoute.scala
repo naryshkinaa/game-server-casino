@@ -5,11 +5,9 @@ import akka.http.scaladsl.server.Directives.{as, complete, cookie, decodeRequest
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.example.domain.api.incoming.{GetGameInfoRequest, StartGameRequest}
-import com.example.domain.api.outcoming.{GameConnectedNotification, GameInfoNotification}
-import com.example.domain.game.MainLobbyEvents
-import com.example.domain.game.MainLobbyEvents.GetGameInfo
-import com.example.service.PlayerActor.ConnectedToGame
+import com.example.domain.api.incoming.GetGameInfoRequest
+import com.example.domain.api.outcoming.GameInfoNotification
+import com.example.service.lobby.MainLobbyActor
 import com.example.util.JsonUtil
 
 import scala.concurrent.duration.DurationInt
@@ -27,10 +25,10 @@ object GetGameInfoRoute {
             decodeRequest {
               entity(as[String]) { request =>
                 val parsed = JsonUtil.fromJson[GetGameInfoRequest](request)
-                val future = mainLobby.ask(GetGameInfo(nameCookie.value, parsed.gameId))
+                val future = mainLobby.ask(MainLobbyActor.GetGameInfo(nameCookie.value, parsed.gameId))
                 onComplete(future) {
                   case Success(info: GameInfoNotification) =>
-                      complete(JsonUtil.toJson(info))
+                    complete(JsonUtil.toJson(info))
                   case Failure(exception) => sys.error(exception.getMessage)
                 }
               }

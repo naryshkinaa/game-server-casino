@@ -1,6 +1,6 @@
 package com.example.service.compare
 
-import com.example.domain.GameResult.GameResult
+import com.example.domain.game.GameResult.GameResult
 
 trait GameResultCompare[A] {
 

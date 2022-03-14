@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.example.bot.AbstractBot
 import com.example.config.Params
-import com.example.domain.GameType
+import com.example.domain.game.GameType
 import com.example.rest._
 import com.example.service.games.{DoubleCardGameActor, SingleCardGameActor}
 import com.example.service.lobby.{GameLobbyActor, MainLobbyActor}

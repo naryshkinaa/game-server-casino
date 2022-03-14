@@ -1,16 +1,18 @@
 <template>
     <div class="board">
-      <div id="first" class="table">
+      <div v-if="isMobile()"  class="tableMobile">
         <GameTable ref="child1"/>
       </div>
-      <div id="second" class="table">
+      <div v-if="!isMobile()" id="first" class="table">
+        <GameTable ref="child1"/>
+      </div>
+      <div v-if="!isMobile()" id="second" class="table">
         <GameTable ref="child2"/>
       </div>
-      <div style='clear:both'></div>
-      <div id="third" class="table">
+      <div v-if="!isMobile()" id="third" class="table">
         <GameTable ref="child3"/>
       </div>
-      <div id="fourth" class="table">
+      <div v-if="!isMobile()" id="fourth" class="table">
         <GameTable ref="child4"/>
       </div>
     </div>
@@ -38,9 +40,16 @@ export default {
     },
     restoreGames: function (games){
       if(games[0] != null) this.$refs.child1.restoreGame(games[0]);
-      if(games[1] != null) this.$refs.child1.restoreGame(games[1]);
-      if(games[2] != null) this.$refs.child1.restoreGame(games[2]);
-      if(games[3] != null) this.$refs.child1.restoreGame(games[3]);
+      if(games[1] != null) this.$refs.child2.restoreGame(games[1]);
+      if(games[2] != null) this.$refs.child3.restoreGame(games[2]);
+      if(games[3] != null) this.$refs.child4.restoreGame(games[3]);
+    },
+    isMobile() {
+      if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        return true
+      } else {
+        return false
+      }
     }
   }
 }
@@ -48,10 +57,17 @@ export default {
 <style>
 
 .table {
-  /*width: 45%;*/
-  /*height: 45%;*/
   width: calc(50% - 14px);
   height: calc(50% - 14px);
+  margin:6px;
+  border:1px solid black;
+  float: left;
+  border-radius: 10px;
+}
+
+.tableMobile {
+  width: calc(100% - 14px);
+  height: calc(100% - 14px);
   margin:6px;
   border:1px solid black;
   float: left;

@@ -2,9 +2,9 @@ package com.example.service.player
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.example.domain.api.incoming.UserActionRequest
-import com.example.domain.api.outcoming._
-import com.example.domain.game.{GameEvents, UserAction}
-import com.example.domain.{GameResult, Hand, UserPush}
+import com.example.domain.api.outcoming.{UserPush, _}
+import com.example.domain.game.{GameResult, Hand, UserAction}
+import com.example.service.games.AbstractTableGameActor
 import com.example.socket.SocketHandler.PlayerInfo
 
 import scala.collection.mutable.ArrayBuffer
@@ -48,7 +48,7 @@ class PlayerActor(playerId: String, socketActor: ActorRef) extends Actor with Ac
     case RestoreGameInfo(gameId, callback) =>
       val gameActor = games.get(gameId)
       if(gameActor.isEmpty) callback ! GameInfoNotification(gameId, null, false, false)
-      else gameActor.get ! GameEvents.GetGameInfo(playerId, callback)
+      else gameActor.get ! AbstractTableGameActor.GetGameInfo(playerId, callback)
 
     //FROM user
     case UserActionRequest(gameId, action) => games.get(gameId).foreach(g => g ! UserAction(playerId, action))

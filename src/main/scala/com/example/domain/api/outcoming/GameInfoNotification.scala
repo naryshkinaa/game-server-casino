@@ -1,6 +1,6 @@
 package com.example.domain.api.outcoming
 
-import com.example.domain.Hand
+import com.example.domain.game.Hand
 
 case class GameInfoNotification(
                                gameId: String,

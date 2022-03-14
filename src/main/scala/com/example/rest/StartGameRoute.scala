@@ -8,7 +8,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.example.domain.api.incoming.StartGameRequest
 import com.example.domain.api.outcoming.{GameConnectedNotification, UserInfoNotification}
-import com.example.domain.game.MainLobbyEvents
+import com.example.service.lobby.MainLobbyActor
 import com.example.service.player.PlayerActor.ConnectedToGame
 import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
@@ -29,7 +29,7 @@ object StartGameRoute {
               entity(as[String]) { request =>
                 val parsed = JsonUtil.fromJson[StartGameRequest](request)
                 val future = mainLobby
-                  .ask(MainLobbyEvents.NewGame(nameCookie.value, parsed.gameType, None))
+                  .ask(MainLobbyActor.NewGame(nameCookie.value, parsed.gameType, None))
                 onComplete(future) {
                   case Success(connected: ConnectedToGame) =>
                       complete(JsonUtil.toJson(GameConnectedNotification(connected.gameId)))

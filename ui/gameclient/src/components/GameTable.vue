@@ -52,7 +52,6 @@ export default {
       API.startGame(gameType, response => {
         this.currentState = GameState.WAITING_OPPONENT;
         this.gameId = response.data.gameId;
-        console.log(this.gameId)
       })
     },
     toNewGame: function(){
@@ -77,7 +76,6 @@ export default {
       }
     },
     gameStartPush: function(data) {
-      console.log(data)
       if(data.gameId === this.gameId){
         this.currentState = GameState.RUNNING;
         this.card1 = data.hand.cards[0]
@@ -94,7 +92,8 @@ export default {
         else {
           if(response.data.hand != null){
             this.currentState = GameState.RUNNING;
-            this.card1 = response.data.hand.cards[0].rank;
+            this.card1 = response.data.hand.cards[0];
+            if(response.data.hand.cards.length == 2) this.card2 = response.data.hand.cards[1];
             this.actionDone = response.data.actionDone;
           }
           else {

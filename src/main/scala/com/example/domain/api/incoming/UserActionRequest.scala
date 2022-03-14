@@ -1,7 +1,7 @@
 package com.example.domain.api.incoming
 
-import com.example.domain.PlayerActionType.PlayerActionType
-import com.example.domain.PlayerActionTypeType
+import com.example.domain.game.PlayerActionType.PlayerActionType
+import com.example.domain.game.PlayerActionTypeType
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 
 case class UserActionRequest(

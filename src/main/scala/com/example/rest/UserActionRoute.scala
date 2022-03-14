@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.{as, complete, cookie, decodeRequest
 import akka.http.scaladsl.server.Route
 import akka.util.Timeout
 import com.example.domain.api.incoming.UserActionRequest
-import com.example.domain.game.MainLobbyEvents.UserActionWithPlayer
+import com.example.service.lobby.MainLobbyActor
 import com.example.util.JsonUtil
 
 import scala.concurrent.duration.DurationInt
@@ -22,7 +22,7 @@ object UserActionRoute {
             decodeRequest {
               entity(as[String]) { request =>
                 val parsed = JsonUtil.fromJson[UserActionRequest](request)
-                mainLobby ! UserActionWithPlayer(nameCookie.value, parsed.gameId, parsed.action)
+                mainLobby ! MainLobbyActor.UserAction(nameCookie.value, parsed.gameId, parsed.action)
                 complete("{}")
               }
             }

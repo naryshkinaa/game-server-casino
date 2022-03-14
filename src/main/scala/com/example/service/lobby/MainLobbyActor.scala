@@ -1,11 +1,12 @@
 package com.example.service.lobby
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.example.domain.GameType
+import com.example.domain.game.GameType.GameType
+import com.example.domain.game.PlayerActionType.PlayerActionType
 import com.example.domain.api.incoming.UserActionRequest
-import com.example.domain.game.GameLobbyEvents
-import com.example.service.player.PlayerActor.{RestoreGameInfo, RestoreInfo}
+import com.example.domain.game.GameType
 import com.example.service.player.PlayerActor
+import com.example.service.player.PlayerActor.{RestoreGameInfo, RestoreInfo}
 
 import scala.collection.mutable
 
@@ -15,20 +16,18 @@ class MainLobbyActor(
                     ) extends Actor {
   val onlinePlayers: mutable.Map[String, ActorRef] = collection.mutable.Map[String, ActorRef]()
 
-  import com.example.domain.game.MainLobbyEvents._
-
   def receive: Receive = {
-    case NewGame(playerId, gameType, callback) =>
+    case MainLobbyActor.NewGame(playerId, gameType, callback) =>
       val player = onlinePlayers.get(playerId)
       if (player.isEmpty) sender() ! "Player not connected"
       else {
         gameType match {
-          case GameType.SINGLE_CARD_GAME => singleCardGameLobby ! GameLobbyEvents.NewGame(playerId, player.get, callback.getOrElse(sender()))
-          case GameType.DOUBLE_CARD_GAME => doubleCardGameLobby ! GameLobbyEvents.NewGame(playerId, player.get, callback.getOrElse(sender()))
+          case GameType.SINGLE_CARD_GAME => singleCardGameLobby ! GameLobbyActor.NewGame(playerId, player.get, callback.getOrElse(sender()))
+          case GameType.DOUBLE_CARD_GAME => doubleCardGameLobby ! GameLobbyActor.NewGame(playerId, player.get, callback.getOrElse(sender()))
         }
       }
 
-    case Connect(playerId) =>
+    case MainLobbyActor.Connect(playerId) =>
       val playerActor = onlinePlayers.getOrElse(playerId, {
         val newActor = context.actorOf(Props(classOf[PlayerActor], playerId, sender()))
         onlinePlayers.put(playerId, newActor)
@@ -36,19 +35,19 @@ class MainLobbyActor(
       })
       playerActor ! RestoreInfo(sender())
 
-    case GetGameInfo(playerId, gameId) =>
+    case MainLobbyActor.GetGameInfo(playerId, gameId) =>
       val player = onlinePlayers.get(playerId)
       if (player.isEmpty) sender() ! "Player not connected"
       player.get ! RestoreGameInfo(gameId, sender())
 
 
-    case GetEvents(playerId) => {
+    case MainLobbyActor.GetEvents(playerId) => {
       val player = onlinePlayers.get(playerId)
       if (player.isEmpty) sender() ! "Player not connected"
       else player.get ! PlayerActor.GetEvents(sender())
     }
 
-    case UserActionWithPlayer(playerId, gameId, action) => {
+    case MainLobbyActor.UserAction(playerId, gameId, action) => {
       val player = onlinePlayers.get(playerId)
       if (player.isEmpty) sender() ! "Player not connected"
       else player.get ! UserActionRequest(gameId, action)
@@ -58,3 +57,23 @@ class MainLobbyActor(
 
 }
 
+object MainLobbyActor {
+
+  case class NewGame(playerId: String, gameType: GameType, callback: Option[ActorRef])
+
+  case class Connect(playerId: String)
+
+  case class Disconnect(playerId: String)
+
+  //tmp solution for rest UI
+  case class GetEvents(playerId: String)
+
+  case class UserAction(
+                         playerId: String,
+                         gameId: String,
+                         action: PlayerActionType
+                       )
+
+  case class GetGameInfo(playerId: String, gameId: String)
+
+}

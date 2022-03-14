@@ -1,6 +1,6 @@
 package com.example
 
-import com.example.domain.{Card, CardRank, CardSuit, GameResult, Hand}
+import com.example.domain.game._
 import com.example.service.compare.DoubleCardCompare
 import org.scalatest.funspec.AnyFunSpec
 

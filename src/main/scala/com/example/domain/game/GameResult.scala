@@ -1,4 +1,4 @@
-package com.example.domain
+package com.example.domain.game
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 
