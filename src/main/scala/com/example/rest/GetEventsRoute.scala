@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.{complete, cookie, get, onComplete, 
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.example.domain.api.outcoming.GetEventsNotification
+import com.example.domain.api.outcoming.response.GetEventsResponse
 import com.example.service.lobby.MainLobbyActor
 import com.example.util.JsonUtil
 
@@ -24,7 +24,7 @@ object GetEventsRoute {
             val future = mainLobby
               .ask(MainLobbyActor.GetEvents(nameCookie.value))
             onComplete(future) {
-              case Success(events: GetEventsNotification) =>
+              case Success(events: GetEventsResponse) =>
                 complete(JsonUtil.toJson(events))
               case Failure(exception) => sys.error(exception.getMessage)
             }

@@ -2,64 +2,63 @@ package com.example.service.player
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.example.domain.api.incoming.UserActionRequest
-import com.example.domain.api.outcoming.{UserPush, _}
+import com.example.domain.api.outcoming.push.{GameResultNotification, GameStartedNotification, UserNotification}
+import com.example.domain.api.outcoming.response.{GameInfoResponse, GetEventsResponse, UserInfoResponse}
 import com.example.domain.game.{GameResult, Hand, UserAction}
 import com.example.service.games.AbstractTableGameActor
-import com.example.socket.SocketHandler.PlayerInfo
-
-import scala.collection.mutable.ArrayBuffer
 
 class PlayerActor(playerId: String, socketActor: ActorRef) extends Actor with ActorLogging {
-  var tokens: Int = 1000
-  var games = collection.mutable.Map[String, ActorRef]()
-
-  //see notes implementation, it's temp solution for REST UI
-  val gameResults = new ArrayBuffer[UserGameResultNotification]()
-  val gameStarted = new ArrayBuffer[GameStartedNotification]()
 
   import PlayerActor._
 
   def receive = {
+    mainState(PlayerActorContext(1000, Map(), Nil, Nil))
+  }
+
+  def mainState(state: PlayerActorContext): Receive = {
     //FROM server
     case Lose(gameId, amount, message) => {
-      tokens -= amount
-      games.remove(gameId)
-      notifyUser(ResponseType.GameResult, UserGameResultNotification(gameId, GameResult.Lose, message, tokens))
+      val newTokens = state.tokens - amount
+      val newState = state.copy(tokens = newTokens, games = state.games - gameId)
+      context.become(mainState(newState))
+      notifyUser(GameResultNotification(gameId, GameResult.Lose, message, newTokens), newState)
     }
     case Win(gameId, amount, message) => {
-      tokens += amount
-      games.remove(gameId)
-      notifyUser(ResponseType.GameResult, UserGameResultNotification(gameId, GameResult.Win, message, tokens))
+      val newTokens = state.tokens + amount
+      val newState = state.copy(tokens = newTokens, games = state.games - gameId)
+      context.become(mainState(newState))
+      notifyUser(GameResultNotification(gameId, GameResult.Win, message, newTokens), newState)
     }
-    case GameStarted(gameId, hand, isRestarted) => notifyUser(ResponseType.GameStarted, GameStartedNotification(gameId, hand, isRestarted))
-    case ConnectedToGame(gameId, game) =>
-      //todo need notification
-      games.put(gameId, game)
+    case GameStarted(gameId, hand, isRestarted) => notifyUser(GameStartedNotification(gameId, hand, isRestarted), state)
+    case ConnectedToGame(gameId) =>
+      context.become(mainState(state.copy(games = state.games + (gameId -> sender()))))
 
     case GetEvents(callback) => {
-      callback ! GetEventsNotification(gameResults.toList, gameStarted.toList)
-      gameResults.clear()
-      gameStarted.clear()
+      callback ! GetEventsResponse(state.gameResults, state.gameStarted)
+      context.become(mainState(state.copy(gameResults = Nil, gameStarted = Nil)))
     }
 
     case RestoreInfo(callback) =>
-      callback ! PlayerInfo(playerId, self, tokens, games.keys.toList)
+      callback ! UserInfoResponse(playerId, state.tokens, state.games.keys.toList)
 
     case RestoreGameInfo(gameId, callback) =>
-      val gameActor = games.get(gameId)
-      if(gameActor.isEmpty) callback ! GameInfoNotification(gameId, null, false, false)
+      val gameActor = state.games.get(gameId)
+      if (gameActor.isEmpty) callback ! GameInfoResponse(gameId, null, false, false)
       else gameActor.get ! AbstractTableGameActor.GetGameInfo(playerId, callback)
 
     //FROM user
-    case UserActionRequest(gameId, action) => games.get(gameId).foreach(g => g ! UserAction(playerId, action))
+    case UserActionRequest(gameId, action) => state.games.get(gameId).foreach(g => g ! UserAction(playerId, action))
   }
 
-  private def notifyUser(responseType: ResponseType.Value, body: AnyRef): Unit = {
-    body match {
-      case e: GameStartedNotification => gameStarted += e
-      case e: UserGameResultNotification => gameResults += e
+  private def notifyUser(
+                          notification: UserNotification,
+                          state: PlayerActorContext
+                        ): Unit = {
+    notification match {
+      case e: GameStartedNotification => context.become(mainState(state.copy(gameStarted = state.gameStarted :+ e)))
+      case e: GameResultNotification => context.become(mainState(state.copy(gameResults = state.gameResults :+ e)))
     }
-    socketActor ! UserPush(responseType, body)
+    socketActor ! notification
   }
 }
 
@@ -71,12 +70,19 @@ object PlayerActor {
 
   case class GameStarted(gameId: String, hand: Hand, isRestarted: Boolean)
 
-  case class ConnectedToGame(gameId: String, game: ActorRef)
+  case class ConnectedToGame(gameId: String)
 
-  case class GetEvents(callback : ActorRef)
+  case class GetEvents(callback: ActorRef)
 
-  case class RestoreInfo(callback : ActorRef)
+  case class RestoreInfo(callback: ActorRef)
 
-  case class RestoreGameInfo(gameId: String, callback : ActorRef)
+  case class RestoreGameInfo(gameId: String, callback: ActorRef)
 
 }
+
+case class PlayerActorContext(
+                               tokens: Int,
+                               games: Map[String, ActorRef],
+                               gameResults: List[GameResultNotification],
+                               gameStarted: List[GameStartedNotification]
+                             )

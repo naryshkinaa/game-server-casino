@@ -1,4 +1,4 @@
-package com.example.domain.api.outcoming
+package com.example.socket.domain
 
 import com.fasterxml.jackson.core.`type`.TypeReference
 

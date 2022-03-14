@@ -1,4 +1,4 @@
-package com.example.domain.api.incoming
+package com.example.socket.domain
 
 import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 

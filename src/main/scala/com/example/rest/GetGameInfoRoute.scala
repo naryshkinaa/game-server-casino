@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.example.domain.api.incoming.GetGameInfoRequest
-import com.example.domain.api.outcoming.GameInfoNotification
+import com.example.domain.api.outcoming.response.GameInfoResponse
 import com.example.service.lobby.MainLobbyActor
 import com.example.util.JsonUtil
 
@@ -27,7 +27,7 @@ object GetGameInfoRoute {
                 val parsed = JsonUtil.fromJson[GetGameInfoRequest](request)
                 val future = mainLobby.ask(MainLobbyActor.GetGameInfo(nameCookie.value, parsed.gameId))
                 onComplete(future) {
-                  case Success(info: GameInfoNotification) =>
+                  case Success(info: GameInfoResponse) =>
                     complete(JsonUtil.toJson(info))
                   case Failure(exception) => sys.error(exception.getMessage)
                 }

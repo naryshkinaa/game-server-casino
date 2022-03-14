@@ -4,11 +4,12 @@ import akka.actor.{Actor, ActorLogging}
 import akka.util.ByteString
 import com.example.bot.strategy.CardStrategy
 import com.example.config.Params
-import com.example.domain.game.GameType.GameType
 import com.example.domain.api.incoming._
-import com.example.domain.api.outcoming.{ErrorNotification, GameStartedNotification, UserGameResultNotification, UserInfoNotification}
+import com.example.domain.api.outcoming.push.{GameResultNotification, GameStartedNotification}
+import com.example.domain.api.outcoming.response.{ErrorResponse, GameConnectedResponse, UserInfoResponse}
+import com.example.domain.game.GameType.GameType
 import com.example.domain.game.Hand
-import com.example.socket.SocketServer
+import com.example.socket.domain.{RequestType, WrappedRequest}
 import com.example.util.JsonUtil
 
 import java.net.InetSocketAddress
@@ -28,13 +29,12 @@ class AbstractBot(
   def receive: Receive = {
     case AbstractBot.Start =>
       client ! prepareRequest(RequestType.Auth, AuthRequest(playerId, "password"))
-    case UserInfoNotification(_, _) =>
+    case UserInfoResponse(_, _, _) =>
       context.become(playStage(totalGames, Map()))
       for (_ <- 1 to concurrentGames) {
         self ! AbstractBot.StartGame
-
       }
-    case ErrorNotification(message) =>
+    case ErrorResponse(message) =>
       wrapLog(s"Error: $message")
 
   }
@@ -53,12 +53,14 @@ class AbstractBot(
       wrapLog(s"Decide do action: $action")
       client ! prepareRequest(RequestType.GameAction, UserActionRequest(gameId, action))
 
-    case ErrorNotification(message) =>
-      wrapLog(s"Error: $message")
-
-    case UserGameResultNotification(gameId,_ , message, balance) =>
+    case GameResultNotification(_, _, message, balance) =>
       wrapLog(s"Game end: $message. Balance: $balance")
       self ! AbstractBot.StartGame
+
+    case ErrorResponse(message) =>
+      wrapLog(s"Error: $message")
+
+    case _ : GameConnectedResponse =>
   }
 
   private def wrapLog(message: String): Unit = {

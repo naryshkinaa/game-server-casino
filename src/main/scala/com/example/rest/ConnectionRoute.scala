@@ -7,9 +7,8 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.example.domain.api.incoming.AuthRequest
-import com.example.domain.api.outcoming.UserInfoNotification
+import com.example.domain.api.outcoming.response.UserInfoResponse
 import com.example.service.lobby.MainLobbyActor
-import com.example.socket.SocketHandler.PlayerInfo
 import com.example.util.JsonUtil
 
 import scala.concurrent.duration.DurationInt
@@ -28,9 +27,9 @@ object ConnectRoute {
             val future = mainLobby
               .ask(MainLobbyActor.Connect(parsed.player))
             onComplete(future) {
-              case Success(info: PlayerInfo) =>
-                setCookie(HttpCookie("userName", value = info.playerId)) {
-                  complete(JsonUtil.toJson(UserInfoNotification(info.balance, info.activeGames)))
+              case Success(info: UserInfoResponse) =>
+                setCookie(HttpCookie("userName", value = parsed.player)) {
+                  complete(JsonUtil.toJson(info))
                 }
               case Failure(exception) => sys.error(exception.getMessage)
             }
