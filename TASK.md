@@ -39,13 +39,6 @@ Please including a concise `ReadMe.md` file with the following:
 We do not require the documentation to be verbose or lengthy - short descriptions are acceptable, and details
 can be discussed on the interview.
 
-### Submission process
-
-Please publish the solution in a private [GitHub](https://github.com/) repository and give the user
-[@evo-home-task](https://github.com/evo-home-task) access to the repository.
-
-If anything in the task description is unclear, please do not hesitate to ask.
-
 ## Description
 
 ### Starting the game
