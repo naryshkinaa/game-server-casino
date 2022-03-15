@@ -11,6 +11,7 @@ val AkkaHttpVersion = "10.2.9"
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.11",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.2",
+  "org.mapdb" % "mapdb" % "3.0.8",
   "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
   "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
   //    "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,

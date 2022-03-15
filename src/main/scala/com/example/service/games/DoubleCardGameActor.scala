@@ -14,7 +14,7 @@ class DoubleCardGameActor(
                            val gameLobby: ActorRef
                          ) extends AbstractTableGameActor {
   val tableSize: Int = 2
-  val timeLimitSec: Int = Params.timeLimitSec
+  val timeLimitSec: Int = Params.timeActionLimitSec
   val compare: HandCompare = new DoubleCardCompare()
   val fold_fold: Int = 2
   val fold_play: Int = 5

@@ -23,7 +23,7 @@ class SocketHandler(mainLobby: ActorRef, client: ActorRef) extends Actor with Ac
       wrapper.requestType match {
         case RequestType.Auth =>
           val parsed = JsonUtil.fromJson[AuthRequest](wrapper.serializedBody)
-          mainLobby ! MainLobbyActor.Connect(parsed.player)
+          mainLobby ! MainLobbyActor.Connect(parsed.player, Some(self))
         case _ => client ! prepareRequest(ErrorResponse("User NOT authenticated"))
       }
     case e@UserInfoResponse(playerId, _, _) =>

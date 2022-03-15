@@ -11,6 +11,7 @@ Features
 - Player has limitations for making action (20 sec). After this it makes auto Fold
 - Player can reconnect to server and running games (it can be done to any state: waiting opponent or performing action). Can be test this by refresh page and push connect button again
 - Bot (for single game) is implemented with different strategies. It start by default and can be configured (see Params)
+- Persist player balance during restarting. 
 
 Limitations
 - I can't implement normal socket client on UI, so i have done some ugly REST emulation with ping test every second, but normally all UserNotifications should be delivered by socket

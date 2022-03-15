@@ -14,7 +14,7 @@ class SingleCardGameActor(
                            val gameLobby: ActorRef
                          ) extends AbstractTableGameActor {
   val tableSize: Int = 2
-  val timeLimitSec: Int = Params.timeLimitSec
+  val timeLimitSec: Int = Params.timeActionLimitSec
   val compare: HandCompare = new OneCardCompare()
   val fold_fold: Int = 1
   val fold_play: Int = 3

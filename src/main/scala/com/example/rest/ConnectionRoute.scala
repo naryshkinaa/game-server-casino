@@ -25,7 +25,7 @@ object ConnectRoute {
           entity(as[String]) { request =>
             val parsed = JsonUtil.fromJson[AuthRequest](request)
             val future = mainLobby
-              .ask(MainLobbyActor.Connect(parsed.player))
+              .ask(MainLobbyActor.Connect(parsed.player, None))
             onComplete(future) {
               case Success(info: UserInfoResponse) =>
                 setCookie(HttpCookie("userName", value = parsed.player)) {
